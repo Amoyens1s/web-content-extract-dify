@@ -3,6 +3,8 @@ from typing import Any
 import subprocess
 import json
 import logging
+import os
+import shutil
 
 from dify_plugin import Tool
 from dify_plugin.entities.tool import ToolInvokeMessage
@@ -22,6 +24,25 @@ class WebContentExtractTool(Tool):
             return
         
         try:
+            # Log the parameters for debugging
+            logger.info(f"WebContentExtractTool called with URL: {url}, include_seo: {include_seo}, format: {format_type}")
+            
+            # Check if Node.js and npx are available
+            node_path = shutil.which("node")
+            npx_path = shutil.which("npx")
+            
+            if not node_path:
+                yield self.create_text_message("Error: Node.js not found in the system. Please ensure Node.js is installed and available in PATH.")
+                return
+                
+            if not npx_path:
+                yield self.create_text_message("Error: npx not found in the system. Please ensure Node.js/npm is installed and available in PATH.")
+                return
+            
+            # Log Node.js and npx paths for debugging
+            logger.info(f"Node.js path: {node_path}")
+            logger.info(f"npx path: {npx_path}")
+            
             # Build command to call web-content-extract CLI
             cmd = ["npx", "web-content-extract", url]
             
@@ -32,15 +53,27 @@ class WebContentExtractTool(Tool):
             # Always use JSON format for consistent parsing
             cmd.append("--json")
             
+            # Log the command being executed
             logger.info(f"Executing command: {' '.join(cmd)}")
+            
+            # Set environment variables to ensure proper execution
+            env = os.environ.copy()
+            env["PATH"] = os.environ.get("PATH", "")
             
             # Execute the command
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30  # 30 second timeout
+                timeout=30,  # 30 second timeout
+                env=env
             )
+            
+            # Log command execution results for debugging
+            logger.info(f"Command execution completed. Return code: {result.returncode}")
+            logger.info(f"STDOUT: {result.stdout[:500]}...")  # Log first 500 characters of stdout
+            if result.stderr:
+                logger.info(f"STDERR: {result.stderr}")
             
             # Check if command was successful
             if result.returncode != 0:
@@ -50,8 +83,17 @@ class WebContentExtractTool(Tool):
                 yield self.create_text_message(f"Error extracting content: {error_msg}")
                 return
             
+            # Check if stdout is empty
+            if not result.stdout.strip():
+                yield self.create_text_message("Error: Command executed successfully but returned empty output.")
+                return
+            
             # Parse the JSON output
-            output_data = json.loads(result.stdout)
+            try:
+                output_data = json.loads(result.stdout)
+            except json.JSONDecodeError as e:
+                yield self.create_text_message(f"Error parsing JSON output. Raw output: {result.stdout[:500]}... Error: {str(e)}")
+                return
             
             # Process the result based on the requested format
             if format_type == "json":
@@ -75,9 +117,10 @@ class WebContentExtractTool(Tool):
                 
         except subprocess.TimeoutExpired:
             yield self.create_text_message("Error: Content extraction timed out (30 seconds)")
+        except FileNotFoundError as e:
+            yield self.create_text_message(f"Error: npx or web-content-extract not found. Please ensure Node.js is installed. Detailed error: {str(e)}")
         except json.JSONDecodeError as e:
             yield self.create_text_message(f"Error parsing JSON output: {str(e)}")
-        except FileNotFoundError:
-            yield self.create_text_message("Error: npx or web-content-extract not found. Please ensure Node.js is installed.")
         except Exception as e:
+            logger.error(f"Unexpected error in WebContentExtractTool: {str(e)}", exc_info=True)
             yield self.create_text_message(f"Error extracting content: {str(e)}")

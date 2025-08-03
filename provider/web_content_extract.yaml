@@ -7,6 +7,7 @@ identity:
   description:
     en_US: Extract clean content from web pages using Mozilla Readability
     zh_Hans: 使用Mozilla Readability从网页中提取干净的内容
+  icon: icon.svg
   tags:
     - search
     - utilities
@@ -15,4 +16,4 @@ tools:
   - tools/web_content_extract.yaml
 extra:
   python:
-    source: web_content_extract.py
+    source: provider/web_content_extract.py

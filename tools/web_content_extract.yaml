@@ -56,4 +56,4 @@ parameters:
           zh_Hans: JSON
 extra:
   python:
-    source: web_content_extract.py
+    source: tools/web_content_extract.py
