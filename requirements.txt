@@ -1,1 +1,8 @@
+# This file lists the Python package dependencies for the Dify plugin.
+#
+# The plugin also uses the following standard Python libraries:
+# - subprocess (for calling the web-content-extract CLI)
+# - json (for parsing the output of the CLI)
+# - logging (for error reporting)
+
 dify-plugin
