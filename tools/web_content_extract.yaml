@@ -1,0 +1,59 @@
+identity:
+  name: web-content-extract-dify
+  author: Amoyens1s
+  label:
+    en_US: Web Content Extract
+    zh_Hans: 网页内容提取
+description:
+  human:
+    en_US: A tool for extracting clean content from web pages using Mozilla Readability. Input should be a URL.
+    zh_Hans: 一个使用Mozilla Readability从网页中提取干净内容的工具。输入应该是一个URL。
+  llm: A tool for extracting clean content from web pages using Mozilla Readability. Input should be a URL.
+parameters:
+  - name: url
+    type: string
+    required: true
+    label:
+      en_US: URL
+      zh_Hans: 网址
+    human_description:
+      en_US: The URL of the web page to extract content from
+      zh_Hans: 要提取内容的网页URL
+    llm_description: The URL of the web page to extract content from
+    form: llm
+  - name: include_seo
+    type: boolean
+    required: false
+    default: true
+    label:
+      en_US: Include SEO Metadata
+      zh_Hans: 包含SEO元数据
+    human_description:
+      en_US: Whether to include SEO metadata in the output
+      zh_Hans: 是否在输出中包含SEO元数据
+    llm_description: Whether to include SEO metadata in the output (true/false)
+    form: llm
+  - name: format
+    type: select
+    required: false
+    default: markdown
+    label:
+      en_US: Output Format
+      zh_Hans: 输出格式
+    human_description:
+      en_US: The format of the output content
+      zh_Hans: 输出内容的格式
+    llm_description: The format of the output content (markdown/json)
+    form: llm
+    options:
+      - value: markdown
+        label:
+          en_US: Markdown
+          zh_Hans: Markdown
+      - value: json
+        label:
+          en_US: JSON
+          zh_Hans: JSON
+extra:
+  python:
+    source: web_content_extract.py

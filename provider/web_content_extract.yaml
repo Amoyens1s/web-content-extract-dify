@@ -1,0 +1,19 @@
+identity:
+  author: Amoyens1s
+  name: web-content-extract-dify
+  label:
+    en_US: Web Content Extract
+    zh_Hans: 网页内容提取
+  description:
+    en_US: Extract clean content from web pages using Mozilla Readability
+    zh_Hans: 使用Mozilla Readability从网页中提取干净的内容
+  icon: icon.svg
+  tags:
+    - search
+    - utilities
+credentials_for_provider: {}
+tools:
+  - tools/web_content_extract.yaml
+extra:
+  python:
+    source: web_content_extract.py
