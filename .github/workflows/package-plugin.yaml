@@ -1,0 +1,69 @@
+name: Package Dify Plugin
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  release:
+    types: [created]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Install Dify CLI
+        run: |
+          go install github.com/langgenius/dify-cli@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Package plugin
+        run: |
+          dify plugin package ./
+
+      - name: Setup signing keys
+        if: github.event_name == 'release'
+        run: |
+          echo "$PLUGIN_PRIVATE_KEY" > private.pem
+          echo "$PLUGIN_PUBLIC_KEY" > public.pem
+        env:
+          PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
+          PLUGIN_PUBLIC_KEY: ${{ secrets.PLUGIN_PUBLIC_KEY }}
+
+      - name: Sign plugin
+        if: github.event_name == 'release'
+        run: |
+          dify signature sign *.difypkg --private_key private.pem
+
+      - name: Verify signature
+        if: github.event_name == 'release'
+        run: |
+          dify signature verify *.signed.difypkg --public_key public.pem
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-content-extract-plugin
+          path: "*.difypkg*"
+          if-no-files-found: error
+
+      - name: Upload release assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.signed.difypkg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

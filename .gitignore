@@ -129,6 +129,11 @@ dmypy.json
 # Dify plugin package
 *.difypkg
 
+# Private key files (security)
+*.pem
+*.private.pem
+*.key
+
 # OS generated files
 .DS_Store
 .DS_Store?
